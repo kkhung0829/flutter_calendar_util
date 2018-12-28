@@ -1,0 +1,9 @@
+part of flutter_calendar_util;
+
+class RetrieveEventsParams {
+  final List<String> eventIds;
+  final DateTime startDate;
+  final DateTime endDate;
+
+  const RetrieveEventsParams({this.eventIds, this.startDate, this.endDate});
+}
