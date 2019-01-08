@@ -46,6 +46,8 @@ public class SwiftFlutterCalendarUtilPlugin: NSObject, FlutterPlugin {
   let retrieveEventsMethod = "retrieveEvents"
   let createOrUpdateEventMethod = "createOrUpdateEvent"
   let deleteEventMethod = "deleteEvent"
+  let retrieveCalendarIdMethod = "retrieveCalendarId"
+  let createCalendarMethod = "createCalendar"
   let calendarIdArgument = "calendarId"
   let startDateArgument = "startDate"
   let endDateArgument = "endDate"
@@ -77,9 +79,9 @@ public class SwiftFlutterCalendarUtilPlugin: NSObject, FlutterPlugin {
             createOrUpdateEvent(call, result)
         case deleteEventMethod:
             deleteEvent(call, result)
-        case retrieveCalendarId:
+        case retrieveCalendarIdMethod:
             retrieveCalendarId(call, result)
-        case createCalendar:
+        case createCalendarMethod:
             createCalendar(call, result)
         default:
             result(FlutterMethodNotImplemented)
@@ -293,7 +295,7 @@ public class SwiftFlutterCalendarUtilPlugin: NSObject, FlutterPlugin {
       }, result: result)
     }
 
-    private func findEKSource() -> EKSource {
+    private func findEKSource() -> EKSource? {
         // if iCloud is on, it hides the local calendars, so check for iCloud first
         let ekSources = self.eventStore.sources
         for ekSource in ekSources {
