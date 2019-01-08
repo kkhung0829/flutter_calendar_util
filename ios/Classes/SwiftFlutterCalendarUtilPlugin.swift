@@ -265,6 +265,53 @@ public class SwiftFlutterCalendarUtilPlugin: NSObject, FlutterPlugin {
       }, result: result)
     }
 
+    private func createCalendar(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+      checkPermissionsThenExecute(permissionsGrantedAction: {
+        let arguments = call.arguments as! Dictionary<String, AnyObject>
+        let calendarName = arguments[self.calendarNameArgument] as! String
+
+        let ekCalendars = self.eventStore.calendars(for: .event)
+        for ekCalendar in ekCalendars {
+          if (ekCalendar.title == calendarName) {
+            result(ekCalendar.calendarIdentifier)
+            return
+          }
+        }
+
+        // Calendar not found, create calendar
+        let newEKCalendar = EKCalendar.init(for: .event, eventStore: self.eventStore)
+        newEKCalendar.title = calendarName
+        newEKCalendar.source = findEKSource()
+
+        do {
+            try self.eventStore.saveCalendar(newEKCalendar, commit: true)
+            result(newEKCalendar.calendarIdentifier)
+        } catch {
+            self.eventStore.reset()
+            result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
+        }
+      }, result: result)
+    }
+
+    private func findEKSource() -> EKSource {
+        // if iCloud is on, it hides the local calendars, so check for iCloud first
+        let ekSources = self.eventStore.sources
+        for ekSource in ekSources {
+            if (ekSource.sourceType == EKSourceType.calDAV && ekSource.title == "iCloud") {
+                return ekSource
+            }
+        }
+
+        // ok, not found.. so it's a local calendar
+        for ekSource in ekSources {
+            if (ekSource.sourceType == EKSourceType.local) {
+                return ekSource
+            }
+        }
+
+        return nil
+    }
+
     private func finishWithUnauthorizedError(result: @escaping FlutterResult) {
         result(FlutterError(code:self.unauthorizedErrorCode, message: self.unauthorizedErrorMessage, details: nil))
     }
