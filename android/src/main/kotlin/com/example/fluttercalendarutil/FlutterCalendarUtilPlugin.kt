@@ -28,6 +28,7 @@ class FlutterCalendarUtilPlugin() : MethodCallHandler {
     val CREATE_OR_UPDATE_EVENT_METHOD = "createOrUpdateEvent"
     val RETRIEVE_CALENDAR_ID_METHOD = "retrieveCalendarId"
     val CREATE_CALENDAR_METHOD = "createCalendar"
+    val DELETE_CALENDAR_METHOD = "deleteCalendar"
 
     // Method arguments
     val CALENDAR_ID_ARGUMENT = "calendarId"
@@ -116,6 +117,11 @@ class FlutterCalendarUtilPlugin() : MethodCallHandler {
                 val calendarName = call.argument<String>(CALENDAR_NAME_ARGUMENT)
 
                 _calendarDelegate.createCalendar(calendarName!!, result)
+            }
+            DELETE_CALENDAR_METHOD -> {
+                val calendarName = call.argument<String>(CALENDAR_NAME_ARGUMENT)
+
+                _calendarDelegate.deleteCalendar(calendarName!!, result)
             }
             else -> {
                 result.notImplemented()

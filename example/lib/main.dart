@@ -130,6 +130,9 @@ class MyHomePageState extends State<MyHomePage> {
         }
       }
 
+      var deleteResult = await _flutterCalendarUtil.deleteCalendar('FlutterTest');
+      print('Delete calendar result: ${deleteResult.data}');
+
       var calendarIdResult = await _flutterCalendarUtil.createCalendar('FlutterTest');
       print('New Calendar id: [${calendarIdResult.data}]');
       

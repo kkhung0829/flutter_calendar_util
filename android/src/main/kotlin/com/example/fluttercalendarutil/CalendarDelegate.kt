@@ -62,6 +62,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     private val REQUEST_PERMISSIONS_METHOD_CODE = DELETE_EVENT_METHOD_CODE + 1
     private val RETRIEVE_CALENDAR_ID_METHOD_CODE = REQUEST_PERMISSIONS_METHOD_CODE + 1
     private val CREATE_CALENDAR_METHOD_CODE = RETRIEVE_CALENDAR_ID_METHOD_CODE + 1
+    private val DELETE_CALENDAR_METHOD_CODE = CREATE_CALENDAR_METHOD_CODE + 1
 
     private val _cachedParametersMap: MutableMap<Int, CalendarMethodsParametersCacheModel> = mutableMapOf<Int, CalendarMethodsParametersCacheModel>()
 
@@ -170,6 +171,17 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             CREATE_CALENDAR_METHOD_CODE -> {
                 if (permissionGranted) {
                     createCalendar(cachedValues.calendarName, cachedValues.pendingChannelResult)
+                } else {
+                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
+                }
+
+                _cachedParametersMap.remove(requestCode)
+
+                return true
+            }
+            DELETE_CALENDAR_METHOD_CODE -> {
+                if (permissionGranted) {
+                    deleteCalendar(cachedValues.calendarName, cachedValues.pendingChannelResult)
                 } else {
                     finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
                 }
@@ -493,6 +505,26 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, CREATE_CALENDAR_METHOD_CODE, calendarName)
             requestPermissions(parameters)
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    public fun deleteCalendar(calendarName: String, pendingChannelResult: MethodChannel.Result) {
+        if (arePermissionsGranted()) {
+            val existingCalId = retrieveCalendarId(calendarName, pendingChannelResult, true)
+            if (existingCalId == null) {
+                finishWithSuccess(false, pendingChannelResult);
+                return
+            }
+
+            val contentResolver: ContentResolver? = _context?.getContentResolver()
+            val deleteUri = ContentUris.withAppendedId(CalendarContract.Calendars.CONTENT_URI, existingCalId.toLong())
+            val deleteSucceeded = contentResolver?.delete(deleteUri, null, null) ?: 0
+
+            finishWithSuccess(deleteSucceeded > 0, pendingChannelResult)
+        } else {
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, DELETE_CALENDAR_METHOD_CODE, calendarName)
+            requestPermissions(parameters)
+        }        
     }
 
     private fun arePermissionsGranted(): Boolean {

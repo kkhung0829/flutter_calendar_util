@@ -227,6 +227,30 @@ class FlutterCalendarUtil {
     return res;
   }
 
+  /// Delete calendar with name
+  /// 
+  /// The `calendarName` paramter is the name of the calendar that plugin will delete
+  /// 
+  /// Returns a [Result] indicating if calendar deleted
+  Future<Result<bool>> deleteCalendar(String calendarName) async {
+    final res = new Result<bool>();
+
+    if (calendarName?.isEmpty ?? true) {
+      res.errorMessages.add(
+        "[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidMissingCalendarName}");
+      return res;
+    }
+
+    try {
+      res.data = await channel.invokeMethod('deleteCalendar',
+        <String, Object>{'calendarName': calendarName});
+    } catch (e) {
+      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
+    }
+
+    return res;
+  }
+
   void _parsePlatformExceptionAndUpdateResult<T>(
       Exception exception, Result<T> result) {
     if (exception == null) {

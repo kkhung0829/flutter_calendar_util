@@ -48,6 +48,7 @@ public class SwiftFlutterCalendarUtilPlugin: NSObject, FlutterPlugin {
   let deleteEventMethod = "deleteEvent"
   let retrieveCalendarIdMethod = "retrieveCalendarId"
   let createCalendarMethod = "createCalendar"
+  let deleteCalendarMethod = "deleteCalendar"
   let calendarIdArgument = "calendarId"
   let startDateArgument = "startDate"
   let endDateArgument = "endDate"
@@ -83,6 +84,8 @@ public class SwiftFlutterCalendarUtilPlugin: NSObject, FlutterPlugin {
             retrieveCalendarId(call, result)
         case createCalendarMethod:
             createCalendar(call, result)
+        case deleteCalendarMethod:
+            deleteCalendar(call, result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -292,6 +295,30 @@ public class SwiftFlutterCalendarUtilPlugin: NSObject, FlutterPlugin {
             self.eventStore.reset()
             result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
         }
+      }, result: result)
+    }
+
+    private func deleteCalendar(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+      checkPermissionsThenExecute(permissionsGrantedAction: {
+        let arguments = call.arguments as! Dictionary<String, AnyObject>
+        let calendarName = arguments[self.calendarNameArgument] as! String
+
+        let ekCalendars = self.eventStore.calendars(for: .event)
+        for ekCalendar in ekCalendars {
+          if (ekCalendar.title == calendarName) {
+            do {
+                try self.eventStore.removeCalendar(ekCalendar, commit: true)
+                result(true)
+            } catch {
+                self.eventStore.reset()
+                result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
+            }
+            return
+          }
+        }
+
+        // Calendar not found, simply return true
+        result(true)
       }, result: result)
     }
 
